@@ -51,7 +51,7 @@ Students seeking help with concepts or coursework should plan to attend office h
 | Tuesday     | 11:30 AM - 12:30 PM | Danni          | JCL 205 |
 | Tuesday     |  2:00 PM -  3:30 PM | Alex           | JCL 263 |
 | Wednesday   | 10:00 AM - 11:30 AM | Krisha         | [Zoom](https://uchicago.zoom.us/j/92584877508?pwd=9Nm0tu0cJMpyhmETD1Yb7HJrawkz2Q.1) |
-| Tuesday     | 11:30 AM - 12:30 PM | Danni          | JCL 205 |
+| Thursday    | 11:30 AM - 12:30 PM | Danni          | JCL 205 |
 | Thursday    |  2:00 PM -  3:30 PM | Alex           | JCL 263 |
 | Friday      | 11:30 AM –  1:00 PM | Song           | JCL 236 |
 | Friday      |  1:00 PM -  2:00 PM | Danni          | [Zoom](https://uchicago.zoom.us/j/92350023086?pwd=7kOq0cOV9TfWaKgX5ElndaMKQmgWKi.1) |
