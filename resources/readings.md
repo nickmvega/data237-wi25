@@ -45,6 +45,7 @@ Here are the reading resoucres for the course separated by the topics we study e
 #### Storytelling
 - [Narrative Visualization: Telling Stories with Data](http://vis.stanford.edu/files/2010-Narrative-InfoVis.pdf)
 - [Communicating with Interactive Articles](https://distill.pub/2020/communicating-with-interactive-articles/)
+- [Superpowers as Inspiration for Visualization](https://arxiv.org/pdf/2108.03524) (content analysis of comics to inform visualization)
 - Papers on [Idyll](https://idl.cs.washington.edu/files/2018-Idyll-UIST.pdf) and [Idyll Studio](https://idl.cs.washington.edu/files/2021-IdyllStudio-UIST.pdf).
 
 #### Accessibility
