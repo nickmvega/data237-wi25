@@ -12,50 +12,35 @@ let svgScatter = d3.select("#scatterplot-container").append("svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-let svgHistogramHP = d3.select("#histogram-hp-container").append("svg")
-    .attr("width", svgWidth)
-    .attr("height", svgHeight)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+let svgHistogramRoot = d3.select("#histogram-container").append("svg")
+        .attr("width", svgWidth)
+        .attr("height", svgHeight * 2);
 
-console.log("HP histogram container:", document.getElementById("histogram-hp-container"));
-console.log("HP SVG created:", svgHistogramHP.node());
-
-let svgHistogramMPG = d3.select("#histogram-mpg-container").append("svg")
-    .attr("width", svgWidth)
-    .attr("height", svgHeight)
-    .append("g")
-    .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-
-console.log("MPG histogram container:", document.getElementById("histogram-mpg-container"));
-console.log("MPG SVG created:", svgHistogramMPG.node());
+let svgHistogramHP = svgHistogramRoot.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
+    svgHistogramHPOverlay = svgHistogramRoot.append("g")
+        .attr("transform", "translate(" + margin.left + "," + margin.top + ")"),
+    svgHistogramMPG = svgHistogramRoot.append("g")
+        .attr("transform", "translate(" + margin.left + "," + (margin.top + height + margin.bottom) + ")"),
+    svgHistogramMPGOverlay = svgHistogramRoot.append("g")
+        .attr("transform", "translate(" + margin.left + "," + (margin.top + height + margin.bottom) + ")");
 
 let brush = d3.brush() 
     .on("start brush", brushFxn)
-    .on("end", brushFxn);
+    .on("end", updateHistograms);
 
-let histogramHPData = [],
+let scatterData = [],
+    histogramHPData = [], 
     histogramMPGData = [],
     filteredHistogramHPData = [],
     filteredHistogramMPGData = [],
-    xScaleHistHP,
-    xScaleHistMPG;
-
-let scatterData = [], 
     points, 
     xScaleScatter,
     yScaleScatter,
-    xScaleBar,
-    yScaleBar;
-
-function getHistogramData(data, key, bins) {
-    const histogram = d3.histogram()
-        .value(d => d[key])
-        .domain(d3.extent(data, d => d[key]))
-        .thresholds(bins);
-    
-    return histogram(data);
-}
+    xScaleHistogramHP,
+    xScaleHistogramMPG,
+    yScaleHistogramHP,
+    yScaleHistMPG;
 
 d3.csv("cars.csv")
     .then(function (data) {
@@ -71,10 +56,10 @@ d3.csv("cars.csv")
         // scatterplot:
         // create scales
         xScaleScatter = d3.scaleLinear()
-            .domain(d3.extent(data, (d) => d.hp))
+            .domain(d3.extent(scatterData, (d) => d.hp)) 
             .range([0, width]), 
         yScaleScatter = d3.scaleLinear()
-            .domain(d3.extent(data, (d) => d.mpg))
+            .domain(d3.extent(scatterData, (d) => d.mpg))
             .range([height, 0]);
 
         // create our axes
@@ -110,86 +95,71 @@ d3.csv("cars.csv")
             .call(brush);
 
         //histograms
-        histogramHPData = getHistogramData(data, 'hp', 20);
-        histogramMPGData = getHistogramData(data, 'mpg', 20);
+        histogramHPData = getHistogramData(scatterData, 'hp', 13);
+        histogramMPGData = getHistogramData(scatterData, 'mpg', 11);
 
-        xScaleHistHP = d3.scaleLinear()
-            .domain([d3.min(histogramHPData, d => d.x0), d3.max(histogramHPData, d => d.x1)])
+        // histogram scales
+        xScaleHistogramHP = d3.scaleLinear()
+            .domain([45, d3.max(scatterData, d => d.hp)])
             .range([0, width]);
-            
-        let yScaleHistHP = d3.scaleLinear()
+        xScaleHistogramMPG = d3.scaleLinear()
+            .domain([8, d3.max(scatterData, d => d.mpg)])
+            .range([0, width]);
+        yScaleHistogramHP = d3.scaleLinear()
             .domain([0, d3.max(histogramHPData, d => d.length)])
             .range([height, 0]);
-
-        xScaleHistMPG = d3.scaleLinear()
-            .domain([d3.min(histogramMPGData, d => d.x0), d3.max(histogramMPGData, d => d.x1)])
-            .range([0, width]);
-            
-        let yScaleHistMPG = d3.scaleLinear()
+        yScaleHistogramMPG = d3.scaleLinear()
             .domain([0, d3.max(histogramMPGData, d => d.length)])
             .range([height, 0]);
 
-        // Axes HP 
-        let xAxisHistHP = svgHistogramHP.append("g")
-            .attr("class", "axis")
-            .attr("transform", `translate(0, ${height})`)
-            .call(d3.axisBottom(xScaleHistHP));
-            
-        let yAxisHistHP = svgHistogramHP.append("g")
-            .attr("class", "axis")
-            .call(d3.axisLeft(yScaleHistHP));
-
-        // Axes MPG
-        let xAxisHistMPG = svgHistogramMPG.append("g")
-            .attr("class", "axis")
-            .attr("transform", `translate(0, ${height})`)
-            .call(d3.axisBottom(xScaleHistMPG));
-            
-        let yAxisHistMPG = svgHistogramMPG.append("g")
-            .attr("class", "axis")
-            .call(d3.axisLeft(yScaleHistMPG));
-
-        // Labels
-        xAxisHistHP.append("text")
+        // histogram axes
+        let xAxisHistogramHP = svgHistogramHP.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(xScaleHistogramHP));
+        let yAxisHistogramHP = svgHistogramHP.append("g")
+            .call(d3.axisLeft(yScaleHistogramHP));
+        let xAxisHistogramMPG = svgHistogramMPG.append("g")
+            .attr("transform", "translate(0," + height + ")")
+            .call(d3.axisBottom(xScaleHistogramMPG));
+        let yAxisHistogramMPG = svgHistogramMPG.append("g")
+            .call(d3.axisLeft(yScaleHistogramMPG));
+        
+        // label our histogram axes
+        xAxisHistogramHP.append("text")
             .attr("class", "label")
             .attr("transform", `translate(${width / 2}, 40)`)
-            .text("Horsepower");
-            
-        yAxisHistHP.append("text")
+            .text("Horsepower")
+        yAxisHistogramHP.append("text")
             .attr("class", "label")
-            .attr("transform", `translate(-40, ${height/2}) rotate(-90)`)
-            .text("Frequency");
-
-        xAxisHistMPG.append("text")
+            .attr("transform", `translate(-40, ${2 * height / 5}) rotate(-90)`)
+            .text("Frequency")
+        xAxisHistogramMPG.append("text")
             .attr("class", "label")
             .attr("transform", `translate(${width / 2}, 40)`)
-            .text("Miles per Gallon");
-            
-        yAxisHistMPG.append("text")
+            .text("Miles per gallon")
+        yAxisHistogramMPG.append("text")
             .attr("class", "label")
-            .attr("transform", `translate(-40, ${height/2}) rotate(-90)`)
-            .text("Frequency");
-
-        // Draw HP histogram bars
+            .attr("transform", `translate(-40, ${2 * height / 5}) rotate(-90)`)
+            .text("Frequency")
+        
+        // render histograms
         svgHistogramHP.selectAll("rect")
             .data(histogramHPData)
             .join("rect")
             .attr("class", "non-brushed")
-            .attr("x", d => xScaleHistHP(d.x0))
-            .attr("y", d => yScaleHistHP(d.length))
-            .attr("width", d => xScaleHistHP(d.x1) - xScaleHistHP(d.x0))
-            .attr("height", d => height - yScaleHistHP(d.length));
+            .attr("x", d => xScaleHistogramHP(d.x0))
+            .attr("y", d => yScaleHistogramHP(d.length))
+            .attr("width", d =>  xScaleHistogramHP(d.x1) - xScaleHistogramHP(d.x0))
+            .attr("height", d => height - yScaleHistogramHP(d.length));
 
-        // Draw MPG histogram bars
         svgHistogramMPG.selectAll("rect")
             .data(histogramMPGData)
             .join("rect")
             .attr("class", "non-brushed")
-            .attr("x", d => xScaleHistMPG(d.x0))
-            .attr("y", d => yScaleHistMPG(d.length))
-            .attr("width", d => xScaleHistMPG(d.x1) - xScaleHistMPG(d.x0))
-            .attr("height", d => height - yScaleHistMPG(d.length));
-
+            .attr("x", d => xScaleHistogramMPG(d.x0))
+            .attr("y", d => yScaleHistogramMPG(d.length))
+            .attr("width", d =>  xScaleHistogramMPG(d.x1) - xScaleHistogramMPG(d.x0))
+            .attr("height", d => height - yScaleHistogramMPG(d.length));
     })
     .catch(function (err) {
         console.error(err);
@@ -232,7 +202,7 @@ function brushFxn(event) { // inclass: add
         points.filter(brushFilter)
             .attr("class", "brushed");
         
-        // filter bar data
+        // filter histogram data
         let filteredScatterData = scatterData.filter(brushFilter);
         filteredHistogramHPData = getHistogramData(filteredScatterData, 'hp', 20);
         filteredHistogramMPGData = getHistogramData(filteredScatterData, 'mpg', 20);
@@ -251,32 +221,31 @@ function brushFxn(event) { // inclass: add
     }
 }
 
-function updateHistograms() {
-    // Update HP histogram
-    let yScaleHistHP = d3.scaleLinear()
-        .domain([0, d3.max(filteredHistogramHPData, d => d.length)])
-        .range([height, 0]);
+function getHistogramData(data, value, bins) {
+    let histogramData = d3.histogram()
+        .value(d => d[value])
+        .domain(d3.extent(data, d => d[value]))
+        .thresholds(bins)(data);
+    return histogramData;
+}
 
-    svgHistogramHP.selectAll("rect.brushed")
+function updateHistograms() {
+    // foreground bars
+    svgHistogramHPOverlay.selectAll("rect")
         .data(filteredHistogramHPData)
         .join("rect")
         .attr("class", "brushed")
-        .attr("x", d => xScaleHistHP(d.x0))
-        .attr("y", d => yScaleHistHP(d.length))
-        .attr("width", d => xScaleHistHP(d.x1) - xScaleHistHP(d.x0))
-        .attr("height", d => height - yScaleHistHP(d.length));
+        .attr("x", d => xScaleHistogramHP(d.x0))
+        .attr("y", d => yScaleHistogramHP(d.length))
+        .attr("width", d => d3.max([0, xScaleHistogramHP(d.x1) - xScaleHistogramHP(d.x0) - 1]))
+        .attr("height", d => height - yScaleHistogramHP(d.length));
 
-    // Update MPG histogram
-    let yScaleHistMPG = d3.scaleLinear()
-        .domain([0, d3.max(filteredHistogramMPGData, d => d.length)])
-        .range([height, 0]);
-
-    svgHistogramMPG.selectAll("rect.brushed")
+    svgHistogramMPGOverlay.selectAll("rect")
         .data(filteredHistogramMPGData)
         .join("rect")
         .attr("class", "brushed")
-        .attr("x", d => xScaleHistMPG(d.x0))
-        .attr("y", d => yScaleHistMPG(d.length))
-        .attr("width", d => xScaleHistMPG(d.x1) - xScaleHistMPG(d.x0))
-        .attr("height", d => height - yScaleHistMPG(d.length));
+        .attr("x", d => xScaleHistogramMPG(d.x0))
+        .attr("y", d => yScaleHistogramMPG(d.length))
+        .attr("width", d => d3.max([0, xScaleHistogramMPG(d.x1) - xScaleHistogramMPG(d.x0) - 1]))
+        .attr("height", d => height - yScaleHistogramMPG(d.length));
 }
