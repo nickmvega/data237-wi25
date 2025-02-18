@@ -138,15 +138,15 @@ Tuesday - Storytelling
 
 Thursay - Accessibility
 
-**Friday, Feb 14 - Exercise 6 due!**
-
 ### Week 7: Rhetorical visualization
 
-**Monday, Feb 17 - Assignment 3 (Interactive Data) due!**
+**Monday, Feb 17 - Exercise 6 due!**
 
 Tuesday - Persuasive visualization
     
 - Exercise 7
+
+**Wednesday, Feb 19 - Assignment 3 (Interactive Data) due!**
 
 Thursday - Deceptive visualization
 
